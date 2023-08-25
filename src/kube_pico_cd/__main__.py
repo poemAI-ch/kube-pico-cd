@@ -51,9 +51,9 @@ def main():
     sqs = boto3.resource("sqs")
 
     # read messages for an aws SQS queue
-    queue = sqs.get_queue_by_name(QueueName=PARAGRAPHER_QUEUE_NAME)
+    queue = sqs.get_queue_by_name(QueueName=KUBE_PICO_CD_DEPLOY_QUEUE_NAME)
     while True:
-        _logger.info(f"Waiting for messages on queue {PARAGRAPHER_QUEUE_NAME}")
+        _logger.info(f"Waiting for messages on queue {KUBE_PICO_CD_DEPLOY_QUEUE_NAME}")
         for message in queue.receive_messages(WaitTimeSeconds=20):
             _logger.info(f"Received message {message.body}")
             page_key_list = json.loads(message.body)
