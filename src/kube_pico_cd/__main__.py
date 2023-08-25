@@ -56,22 +56,7 @@ def main():
         _logger.info(f"Waiting for messages on queue {KUBE_PICO_CD_DEPLOY_QUEUE_NAME}")
         for message in queue.receive_messages(WaitTimeSeconds=20):
             _logger.info(f"Received message {message.body}")
-            page_key_list = json.loads(message.body)
-            for page_keys in page_key_list:
-                paragrapher.extract_paragraphs(page_keys)
-            message.delete()
-            _logger.info(f"Deleted message {message.body}")
-            if args.single:
-                return
 
-
-    # Poll SQS queue for messages
-    while True:
-        response = sqs.receive_message(QueueUrl=SQS_QUEUE_URL, MaxNumberOfMessages=1)
-
-        messages = response.get("Messages")
-        if messages:
-            message = messages[0]
             body = json.loads(message["Body"])
 
             # Get the build timestamp and manifests from the message
@@ -84,7 +69,7 @@ def main():
 
                 # Delete the processed message from the queue
                 sqs.delete_message(
-                    QueueUrl=SQS_QUEUE_URL, ReceiptHandle=message["ReceiptHandle"]
+                    QueueUrl=KUBE_PICO_CD_DEPLOY_QUEUE_NAME, ReceiptHandle=message["ReceiptHandle"]
                 )
 
             print(f"Processed message with timestamp {build_timestamp}")
