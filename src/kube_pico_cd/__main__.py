@@ -1,10 +1,11 @@
-import boto3
 import json
-from kubernetes import client, config
+import logging
+import os
 import subprocess
 import tempfile
-import os
-import logging
+
+import boto3
+from kubernetes import client, config
 
 _logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +28,7 @@ def get_current_timestamp(kube_api):
     except Exception as e:
         _logger.warning(f"Failed to get current timestamp: {e}")
         return 0
-        
+
 
 # Function to apply manifests using kubectl
 def apply_manifests(manifests):
@@ -37,16 +38,13 @@ def apply_manifests(manifests):
         subprocess.run(["kubectl", "apply", "-f", tmpfile.name])
 
 
-def main():    
+def main():
     # Initialize boto3 SQS client
     sqs = boto3.client("sqs")
-    
+
     # Initialize Kubernetes client
     config.load_kube_config()
     kube_api = client.CoreV1Api()
-
-
-
 
     sqs = boto3.resource("sqs")
 
@@ -54,23 +52,27 @@ def main():
     queue = sqs.get_queue_by_name(QueueName=KUBE_PICO_CD_DEPLOY_QUEUE_NAME)
     while True:
         _logger.info(f"Waiting for messages on queue {KUBE_PICO_CD_DEPLOY_QUEUE_NAME}")
+
         for message in queue.receive_messages(WaitTimeSeconds=20):
             _logger.info(f"Received message {message.body}")
 
-            body = json.loads(message["Body"])
+            body = json.loads(message.body)
 
             # Get the build timestamp and manifests from the message
             build_timestamp = int(body["data"]["buildTimestamp"])
             manifests = body["manifests"]
 
             # Check if the received build timestamp is newer
-            if build_timestamp > get_current_timestamp(kube_api):
+            current_timestamp = get_current_timestamp(kube_api)
+            if build_timestamp > current_timestamp:
+                _logger.info(f"Applying manifests for build {build_timestamp}")
                 apply_manifests(manifests)
-
-                # Delete the processed message from the queue
-                sqs.delete_message(
-                    QueueUrl=KUBE_PICO_CD_DEPLOY_QUEUE_NAME, ReceiptHandle=message["ReceiptHandle"]
+            else:
+                _logger.info(
+                    f"Skipping build {build_timestamp} because it is older than the current timestamp {current_timestamp}"
                 )
+
+            message.delete()
 
             print(f"Processed message with timestamp {build_timestamp}")
 
