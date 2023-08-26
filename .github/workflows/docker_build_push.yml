@@ -20,7 +20,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          PROJECT_NAME=PROJECT_NAME="${GITHUB_REPOSITORY#*/}"
+          PROJECT_NAME="${GITHUB_REPOSITORY#*/}"
           COMMIT_HASH_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
           IMAGE_BASE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/${PROJECT_NAME}"
           echo "IMAGE_BASE_NAME=${IMAGE_BASE_NAME}"
