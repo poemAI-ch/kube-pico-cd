@@ -30,16 +30,18 @@ class Listener:
 
     # Function to get the current build timestamp from the ConfigMap
     def get_current_incremental_identifier(self):
+        build_identifier_key = self.settings.build_incremental_identifier
+
         config_map_name = self.settings.config_map_name
         namespace = self.settings.namespace
         try:
             _logger.info(
-                f"Getting build_incremental_identifier {self.settings.build_incremental_identifier} from ConfigMap {config_map_name} in namespace {namespace}"
+                f"Getting build_incremental_identifier {build_identifier_key} from ConfigMap {config_map_name} in namespace {namespace}"
             )
             config_map = self.get_kube_api().read_namespaced_config_map(
                 config_map_name, self.settings.namespace
             )
-            return int(config_map.data[self.settings.build_incremental_identifier])
+            return int(config_map.data[build_identifier_key])
         except Exception as e:
             _logger.warning(f"Failed to get current timestamp: {e}")
             return 0
@@ -53,6 +55,7 @@ class Listener:
 
     def start(self):
         _logger.info(f"Using namespace {self.settings.namespace}")
+        build_identifier_key = self.settings.build_incremental_identifier
 
         # Initialize AWS SQS resource
         sqs = boto3.resource("sqs")
@@ -74,10 +77,8 @@ class Listener:
                 body = json.loads(message.body)
 
                 # Get the build timestamp and manifests from the message
-                if self.settings.build_incremental_identifier in body["data"]:
-                    self.settings.build_incremental_identifier = int(
-                        body["data"][self.settings.build_incremental_identifier]
-                    )
+                if build_identifier_key in body["data"]:
+                    message_build_identifier = int(body["data"][build_identifier_key])
 
                     manifests = body["manifests"]
 
@@ -86,12 +87,9 @@ class Listener:
                         self.get_current_incremental_identifier()
                     )
                     _logger.info(
-                        f"Current incremental identfier {self.settings.build_incremental_identifier} is {current_incremental_identifier}, build identifier in message is {self.settings.build_incremental_identifier}"
+                        f"Current incremental identfier {build_identifier_key} is {current_incremental_identifier}, build identifier in message is {message_build_identifier}"
                     )
-                    if (
-                        self.settings.build_incremental_identifier
-                        >= current_incremental_identifier
-                    ):
+                    if message_build_identifier >= current_incremental_identifier:
                         # Note: We will also apply the manifests if the build timestamp is equal to the current timestamp
                         # this is to handle the case where we crashed during the previous apply, but were already
                         # able to update the build timestamp in the ConfigMap
@@ -100,21 +98,19 @@ class Listener:
                         # This however requires that the upstream processes must make sure that equal build numbers have equal content
 
                         _logger.info(
-                            f"Applying manifests for build {self.settings.build_incremental_identifier}"
+                            f"Applying manifests for build {message_build_identifier}"
                         )
                         self.apply_manifests(manifests)
 
                     else:
                         _logger.info(
-                            f"Skipping build {self.settings.build_incremental_identifier} because it is older than the current timestamp {current_incremental_identifier}"
+                            f"Skipping build {message_build_identifier} because it is older than the current timestamp {current_incremental_identifier}"
                         )
                 else:
                     _logger.warning(
-                        f"Message does not contain {self.settings.build_incremental_identifier}, skipping"
+                        f"Message does not contain {build_identifier_key}, skipping"
                     )
 
                 message.delete()
 
-                print(
-                    f"Processed message with timestamp {self.settings.build_incremental_identifier}"
-                )
+                print(f"Processed message with timestamp {message_build_identifier}")
