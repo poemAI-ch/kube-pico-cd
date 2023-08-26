@@ -11,7 +11,6 @@ from kube_pico_cd.config import settings
 _logger = logging.getLogger(__name__)
 
 
-
 # Function to concatenate YAML files
 def concatenate_yamls():
     concatenated_yaml = ""
@@ -34,7 +33,6 @@ def create_config_map(build_info):
 
 
 def push_to_deploy_queue(deploy_queue_name=None):
-
     if deploy_queue_name is None:
         if "deploy_queue_name" in settings:
             deploy_queue_name = settings.deploy_queue_name
@@ -47,7 +45,7 @@ def push_to_deploy_queue(deploy_queue_name=None):
 
     concatenated_yaml = concatenate_yamls()
 
-    build_time_stamp = os.getenv("BUILD_TIMESTAMP",str(int(time.time())))
+    build_time_stamp = os.getenv("BUILD_TIMESTAMP", str(int(time.time())))
 
     build_info = {
         "BUILD_TIMESTAMP": build_time_stamp,

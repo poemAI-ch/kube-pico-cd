@@ -1,17 +1,17 @@
-
+import json
+import logging
+import subprocess
 import tempfile
+
+import boto3
 from kubernetes import client as kube_client
 from kubernetes import config as kube_config
-import logging
-import boto3
-import json
-import subprocess
-
 
 _logger = logging.getLogger(__name__)
 
+
 class Listener:
-    def __init__(self,settings):
+    def __init__(self, settings):
         self.settings = settings
         # Initialize Kubernetes client
         try:
@@ -22,8 +22,6 @@ class Listener:
 
         self.kube_api = kube_client.CoreV1Api()
 
-
-
     # Function to get the current build timestamp from the ConfigMap
     def get_current_incremental_identifier(self):
         config_map_name = self.settings.config_map_name
@@ -32,12 +30,13 @@ class Listener:
             _logger.info(
                 f"Getting build_incremental_identifier {self.settings.build_incremental_identifier} from ConfigMap {config_map_name} in namespace {namespace}"
             )
-            config_map = self.kube_api.read_namespaced_config_map(config_map_name, self.settings.namespace)
+            config_map = self.kube_api.read_namespaced_config_map(
+                config_map_name, self.settings.namespace
+            )
             return int(config_map.data[self.settings.build_incremental_identifier])
         except Exception as e:
             _logger.warning(f"Failed to get current timestamp: {e}")
             return 0
-
 
     # Function to apply manifests using kubectl
     def apply_manifests(manifests):
@@ -46,9 +45,7 @@ class Listener:
             tmpfile.flush()
             subprocess.run(["kubectl", "apply", "-f", tmpfile.name])
 
-
     def start(self):
-
         _logger.info(f"Using namespace {self.settings.namespace}")
 
         # Initialize AWS SQS resource
@@ -74,17 +71,22 @@ class Listener:
                     self.settings.build_incremental_identifier = int(
                         body["data"][self.settings.build_incremental_identifier]
                     )
-                    config_map_name = body["data"].get("CONFIG_MAP_NAME", self.settings.config_map_name)
+                    config_map_name = body["data"].get(
+                        "CONFIG_MAP_NAME", self.settings.config_map_name
+                    )
                     manifests = body["manifests"]
 
                     # Check if the received build timestamp is newer
-                    current_incremental_identifier = self.get_current_incremental_identifier(
-                     config_map_name
+                    current_incremental_identifier = (
+                        self.get_current_incremental_identifier(config_map_name)
                     )
                     _logger.info(
                         f"Current incremental identfier {self.settings.build_incremental_identifier} is {current_incremental_identifier}, build identifier in message is {self.settings.build_incremental_identifier}"
                     )
-                    if self.settings.build_incremental_identifier >= current_incremental_identifier:
+                    if (
+                        self.settings.build_incremental_identifier
+                        >= current_incremental_identifier
+                    ):
                         # Note: We will also apply the manifests if the build timestamp is equal to the current timestamp
                         # this is to handle the case where we crashed during the previous apply, but were already
                         # able to update the build timestamp in the ConfigMap
@@ -108,4 +110,6 @@ class Listener:
 
                 message.delete()
 
-                print(f"Processed message with timestamp {self.settings.build_incremental_identifier}")
+                print(
+                    f"Processed message with timestamp {self.settings.build_incremental_identifier}"
+                )

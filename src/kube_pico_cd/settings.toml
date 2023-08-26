@@ -1,4 +1,4 @@
-# Thes are the default values for kube-pico-cd
+# These are the default values for kube-pico-cd
 
 config_map_name = "kube-pico-cd-build-info"
 log_format = "%(asctime)s %(levelname)8s %(name)25s  %(filename)25s:%(lineno)-4d %(message)s"

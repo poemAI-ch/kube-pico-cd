@@ -1,11 +1,12 @@
 import argparse
+import logging
 
 import yaml
-import logging
+
 _logger = logging.getLogger(__name__)
 
 
-def generate_manifest(namespace, queue_name, aws_region,filename = None):
+def generate_manifest(namespace, queue_name, aws_region, filename=None):
     if filename is None:
         filename = f"kube-pico-cd-{namespace}.yaml"
     service_account_name = f"kube-pico-cd-{namespace}-edit"
