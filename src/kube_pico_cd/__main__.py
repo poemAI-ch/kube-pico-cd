@@ -92,6 +92,9 @@ def main():
 
             # Check if the received build timestamp is newer
             current_timestamp = get_current_timestamp(kube_api, config_map_name)
+            _logger.info(
+                f"Current timestamp is {current_timestamp}, build timestamp in message is {build_timestamp}"
+            )
             if build_timestamp >= current_timestamp:
                 # Note: We will also apply the manifests if the build timestamp is equal to the current timestamp
                 # this is to handle the case where we crashed during the previous apply, but were already
