@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main # or the branch you want to build on
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -18,6 +20,15 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/kube-pico-cd:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/kube-pico-cd:latest
+          PROJECT_NAME=PROJECT_NAME="${GITHUB_REPOSITORY#*/}"
+          COMMIT_HASH_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE_BASE_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/${PROJECT_NAME}
+
+          IMAGE_LATEST_NAME=${IMAGE_BASE_NAME}:latest
+          IMAGE_COMMIT_NAME=${IMAGE_BASE_NAME}:${COMMIT_HASH_SHORT}
+          IMAGE_REF_NAME=${IMAGE_BASE_NAME}:${GITHUB_REF_NAME}
+          docker build -t ${IMAGE_LATEST_NAME} -t ${IMAGE_COMMIT_NAME} -t ${IMAGE_REF_NAME} .
+          docker push ${IMAGE_LATEST_NAME}
+          docker push ${IMAGE_COMMIT_NAME}
+          docker push ${IMAGE_REF_NAME}
 
