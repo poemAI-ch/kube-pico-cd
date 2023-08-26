@@ -15,9 +15,23 @@ logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 
 KUBE_PICO_CD_DEPLOY_QUEUE_NAME = os.environ["KUBE_PICO_CD_DEPLOY_QUEUE_NAME"]
 
-NAMESPACE = "default"
+
+def get_current_namespace():
+    try:
+        with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace", "r") as f:
+            return f.read().strip()
+    except IOError as e:
+        _logger.warning(f"An IOError occurred while determining the namespace: {e}")
+        return None
+
+
 if "NAMESPACE" in os.environ:
     NAMESPACE = os.environ["NAMESPACE"]
+else:
+    NAMESPACE = get_current_namespace()
+
+if NAMESPACE is None:
+    raise Exception("Failed to determine namespace")
 
 CONFIG_MAP_NAME = os.environ.get("CONFIG_MAP_NAME", "kube-pico-cd-build-info")
 
