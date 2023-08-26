@@ -3,9 +3,13 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main # or the branch you want to build on
+      - main
     tags:
       - '*'
+
+env:
+  DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}  # Using a configuration variable
+  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}  # Using a secret
 
 jobs:
   build:
@@ -16,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+        run: echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
 
       - name: Build and push Docker image
         run: |
@@ -33,4 +37,3 @@ jobs:
           docker push ${IMAGE_LATEST_NAME}
           docker push ${IMAGE_COMMIT_NAME}
           docker push ${IMAGE_REF_NAME}
-
