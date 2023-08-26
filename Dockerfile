@@ -12,6 +12,7 @@ RUN apt-get update && \
     mv kubectl /usr/local/bin/
 
 RUN /usr/local/bin/python -m pip install --upgrade pip
+COPY entrypoint.sh /entrypoint.sh
 
 COPY setup.cfg .
 COPY setup.py .
@@ -22,5 +23,4 @@ COPY src ./src
 
 RUN pip install --no-cache-dir .
 
-# Run app.py when the container launches
-CMD ["python", "-m","kube_pico_cd"]
+ENTRYPOINT ["/entrypoint.sh"]
