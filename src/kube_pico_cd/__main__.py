@@ -7,8 +7,11 @@ import tempfile
 import boto3
 from kubernetes import client, config
 
+LOG_FORMAT = (
+    "%(asctime)s %(levelname)8s %(name)25s  %(filename)25s:%(lineno)-4d %(message)s"
+)
 _logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 
 KUBE_PICO_CD_DEPLOY_QUEUE_NAME = os.environ["KUBE_PICO_CD_DEPLOY_QUEUE_NAME"]
 CONFIG_MAP_NAME = "build-info"
