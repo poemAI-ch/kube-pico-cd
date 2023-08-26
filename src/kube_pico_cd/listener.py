@@ -13,6 +13,12 @@ _logger = logging.getLogger(__name__)
 class Listener:
     def __init__(self, settings):
         self.settings = settings
+        self.kube_api = None
+
+    def get_kube_api(self):
+        if self.kube_api is not None:
+            return self.kube_api
+
         # Initialize Kubernetes client
         try:
             kube_config.load_kube_config()
@@ -30,7 +36,7 @@ class Listener:
             _logger.info(
                 f"Getting build_incremental_identifier {self.settings.build_incremental_identifier} from ConfigMap {config_map_name} in namespace {namespace}"
             )
-            config_map = self.kube_api.read_namespaced_config_map(
+            config_map = self.get_kube_api().read_namespaced_config_map(
                 config_map_name, self.settings.namespace
             )
             return int(config_map.data[self.settings.build_incremental_identifier])
@@ -50,14 +56,15 @@ class Listener:
 
         # Initialize AWS SQS resource
         sqs = boto3.resource("sqs")
+        deploy_queue_name = self.settings.deploy_queue_name
 
         # read messages for an aws SQS queue
-        queue = sqs.get_queue_by_name(QueueName=self.deploy_queue_name)
+        queue = sqs.get_queue_by_name(QueueName=deploy_queue_name)
         idle_loop_counter = 0
         while True:
             if idle_loop_counter % 50 == 0:
                 _logger.info(
-                    f"Waiting for messages on queue {self.deploy_queue_name}, idle for {idle_loop_counter} loops"
+                    f"Waiting for messages on queue {deploy_queue_name}, idle for {idle_loop_counter} loops"
                 )
             idle_loop_counter += 1
             for message in queue.receive_messages(WaitTimeSeconds=20):

@@ -14,6 +14,7 @@ _logger = logging.getLogger(__name__)
 
 
 def start_listener(args):
+    _logger.info(f"Start listenere")
     if hasattr(args, "namespace") and args.namespace is not None:
         settings.namespace = args.namespace
 
@@ -23,10 +24,12 @@ def start_listener(args):
 
 
 def deploy(args):
+    _logger.info(f"Deploy")
     push_to_deploy_queue(args.deploy_queue_name)
 
 
 def do_generate_manifest(args):
+    _logger.info(f"Generate manifest")
     namespace = args.namespace
     deploy_queue_name = args.deploy_queue_name
     aws_region = args.aws_region
