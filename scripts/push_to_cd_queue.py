@@ -42,10 +42,12 @@ def main():
         build_time_stamp = str(int(time.time()))
 
     build_info = {
+        "BUILD_TIMESTAMP": build_time_stamp,
         "buildTimestamp": build_time_stamp,
         "BRANCH_NAME": os.getenv("BRANCH_NAME", "undefined"),
         "COMMIT_HASH": os.getenv("COMMIT_HASH", "undefined"),
         "TAG_NAME": os.getenv("TAG_NAME", "undefined"),
+        "GITHUB_RUN_NUMBER": os.getenv("GITHUB_RUN_NUMBER", "undefined"),
         "CONFIG_MAP_NAME": CONFIG_MAP_NAME,
     }
 
