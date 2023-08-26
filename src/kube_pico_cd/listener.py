@@ -45,7 +45,7 @@ class Listener:
             return 0
 
     # Function to apply manifests using kubectl
-    def apply_manifests(manifests):
+    def apply_manifests(self, manifests):
         with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmpfile:
             tmpfile.write(manifests.encode())
             tmpfile.flush()
@@ -78,9 +78,7 @@ class Listener:
                     self.settings.build_incremental_identifier = int(
                         body["data"][self.settings.build_incremental_identifier]
                     )
-                    config_map_name = body["data"].get(
-                        "CONFIG_MAP_NAME", self.settings.config_map_name
-                    )
+
                     manifests = body["manifests"]
 
                     # Check if the received build timestamp is newer
