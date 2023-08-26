@@ -21,35 +21,33 @@ def concatenate_yamls():
 
 
 # Function to create ConfigMap
-def create_config_map():
-    env_vars = {
-        "BRANCH_NAME": os.getenv("BRANCH_NAME", "undefined"),
-        "COMMIT_HASH": os.getenv("COMMIT_HASH", "undefined"),
-        "TAG_NAME": os.getenv("TAG_NAME", "undefined"),
-    }
-
+def create_config_map(build_info):
     config_map = {
         "apiVersion": "v1",
         "kind": "ConfigMap",
         "metadata": {"name": "build-info"},
-        "data": env_vars,
+        "data": build_info,
     }
-    config_map["data"]["buildTimestamp"] = str(int(time.time()))
 
     return yaml.dump(config_map)
 
 
 def main():
     concatenated_yaml = concatenate_yamls()
-    config_map_yaml = create_config_map()
-    full_yaml = concatenated_yaml + config_map_yaml
+
+    build_time_stamp = os.getenv("BUILD_TIMESTAMP")
+    if build_time_stamp is None or build_time_stamp == "":
+        build_time_stamp = str(int(time.time()))
 
     build_info = {
-        "buildTimestamp": str(int(time.time())),
+        "buildTimestamp": build_time_stamp,
         "BRANCH_NAME": os.getenv("BRANCH_NAME", "undefined"),
         "COMMIT_HASH": os.getenv("COMMIT_HASH", "undefined"),
         "TAG_NAME": os.getenv("TAG_NAME", "undefined"),
     }
+
+    config_map_yaml = create_config_map(build_info)
+    full_yaml = concatenated_yaml + config_map_yaml
 
     message_body = {"data": build_info, "manifests": full_yaml}
 
