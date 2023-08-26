@@ -33,6 +33,8 @@ else:
 if NAMESPACE is None:
     raise Exception("Failed to determine namespace")
 
+_logger.info(f"Using namespace {NAMESPACE}")
+
 CONFIG_MAP_NAME = os.environ.get("CONFIG_MAP_NAME", "kube-pico-cd-build-info")
 
 
