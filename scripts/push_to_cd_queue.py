@@ -10,6 +10,8 @@ import yaml
 _logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+CONFIG_MAP_NAME = os.environ.get("CONFIG_MAP_NAME", "kube-pico-cd-build-info")
+
 
 # Function to concatenate YAML files
 def concatenate_yamls():
@@ -25,7 +27,7 @@ def create_config_map(build_info):
     config_map = {
         "apiVersion": "v1",
         "kind": "ConfigMap",
-        "metadata": {"name": "build-info"},
+        "metadata": {"name": CONFIG_MAP_NAME},
         "data": build_info,
     }
 
@@ -44,9 +46,11 @@ def main():
         "BRANCH_NAME": os.getenv("BRANCH_NAME", "undefined"),
         "COMMIT_HASH": os.getenv("COMMIT_HASH", "undefined"),
         "TAG_NAME": os.getenv("TAG_NAME", "undefined"),
+        "CONFIG_MAP_NAME": CONFIG_MAP_NAME,
     }
 
     config_map_yaml = create_config_map(build_info)
+    _logger.info(f"ConfigMap YAML:\n{config_map_yaml}")
     full_yaml = concatenated_yaml + config_map_yaml
 
     message_body = {"data": build_info, "manifests": full_yaml}

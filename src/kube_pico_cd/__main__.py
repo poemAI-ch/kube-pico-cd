@@ -14,19 +14,21 @@ _logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 
 KUBE_PICO_CD_DEPLOY_QUEUE_NAME = os.environ["KUBE_PICO_CD_DEPLOY_QUEUE_NAME"]
-CONFIG_MAP_NAME = "build-info"
-if "CONFIG_MAP_NAME" in os.environ:
-    CONFIG_MAP_NAME = os.environ["CONFIG_MAP_NAME"]
 
 NAMESPACE = "default"
 if "NAMESPACE" in os.environ:
     NAMESPACE = os.environ["NAMESPACE"]
 
+CONFIG_MAP_NAME = os.environ.get("CONFIG_MAP_NAME", "kube-pico-cd-build-info")
+
 
 # Function to get the current build timestamp from the ConfigMap
-def get_current_timestamp(kube_api):
+def get_current_timestamp(kube_api, config_map_name):
     try:
-        config_map = kube_api.read_namespaced_config_map(CONFIG_MAP_NAME, NAMESPACE)
+        _logger.info(
+            f"Getting current timestamp from ConfigMap {config_map_name} in namespace {NAMESPACE}"
+        )
+        config_map = kube_api.read_namespaced_config_map(config_map_name, NAMESPACE)
         return int(config_map.data["buildTimestamp"])
     except Exception as e:
         _logger.warning(f"Failed to get current timestamp: {e}")
@@ -71,10 +73,11 @@ def main():
 
             # Get the build timestamp and manifests from the message
             build_timestamp = int(body["data"]["buildTimestamp"])
+            config_map_name = body["data"].get("CONFIG_MAP_NAME", CONFIG_MAP_NAME)
             manifests = body["manifests"]
 
             # Check if the received build timestamp is newer
-            current_timestamp = get_current_timestamp(kube_api)
+            current_timestamp = get_current_timestamp(kube_api, config_map_name)
             if build_timestamp >= current_timestamp:
                 # Note: We will also apply the manifests if the build timestamp is equal to the current timestamp
                 # this is to handle the case where we crashed during the previous apply, but were already
