@@ -85,7 +85,7 @@ class Listener:
 
                     # Check if the received build timestamp is newer
                     current_incremental_identifier = (
-                        self.get_current_incremental_identifier(config_map_name)
+                        self.get_current_incremental_identifier()
                     )
                     _logger.info(
                         f"Current incremental identfier {self.settings.build_incremental_identifier} is {current_incremental_identifier}, build identifier in message is {self.settings.build_incremental_identifier}"
