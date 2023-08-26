@@ -39,13 +39,16 @@ def apply_manifests(manifests):
 
 
 def main():
-    # Initialize boto3 SQS client
-    sqs = boto3.client("sqs")
-
     # Initialize Kubernetes client
-    config.load_kube_config()
+    try:
+        config.load_kube_config()
+    except config.config_exception.ConfigException:
+        _logger.info("kubeconfig not found, loading in-cluster config")
+        config.load_incluster_config()
+
     kube_api = client.CoreV1Api()
 
+    # Initialize AWS SQS resource
     sqs = boto3.resource("sqs")
 
     # read messages for an aws SQS queue
