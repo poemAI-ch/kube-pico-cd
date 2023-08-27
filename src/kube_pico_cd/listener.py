@@ -34,11 +34,12 @@ class Listener:
 
         config_map_name = self.settings.config_map_name
         try:
+            namespace = self.settings.kube_namespace
             _logger.info(
                 f"Getting build_incremental_identifier {build_identifier_key} from ConfigMap {config_map_name} in namespace {namespace}"
             )
             config_map = self.get_kube_api().read_namespaced_config_map(
-                config_map_name, self.settings.kube_namespace
+                config_map_name, namespace
             )
             return int(config_map.data[build_identifier_key])
         except Exception as e:
