@@ -1,8 +1,8 @@
 FROM bitnami/kubectl:1.27.5 as kubectl
 
 
-# Dockerfile for a python flask app
-FROM python:3.11-buster
+# Dockerfile for a python app
+FROM python:3.11
 
 # Set the working directory to /app
 WORKDIR /app

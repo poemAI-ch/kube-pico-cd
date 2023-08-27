@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 def start_listener(args):
     _logger.info(f"Start listenere")
     if hasattr(args, "namespace") and args.namespace is not None:
-        settings.namespace = args.namespace
+        settings.kube_namespace = args.namespace
 
     _logger.info("Start kube-pico-cd")
     listener = Listener(settings)
@@ -25,7 +25,9 @@ def start_listener(args):
 
 def deploy(args):
     _logger.info(f"Deploy")
-    push_to_deploy_queue(args.deploy_queue_name)
+    manifests_root = args.manifests_root
+
+    push_to_deploy_queue(args.deploy_queue_name, manifests_root=manifests_root)
 
 
 def do_generate_manifest(args):
@@ -34,7 +36,6 @@ def do_generate_manifest(args):
     deploy_queue_name = args.deploy_queue_name
     aws_region = args.aws_region
     manifest_file_name = args.manifest_file_name  # This will be None if not provided
-
     # Now call your generate_manifest function with these arguments
     generate_manifest(
         namespace, deploy_queue_name, aws_region, filename=manifest_file_name
@@ -69,6 +70,10 @@ def main():
         default=None,
         help="Name of the deployment queue (optional)",
     )
+    parser_deploy.add_argument(
+        "--manifests_root", default=None, help="Manifests root directory (optional)"
+    )
+
     parser_deploy.set_defaults(func=deploy)
 
     parser_manifest = subparsers.add_parser(

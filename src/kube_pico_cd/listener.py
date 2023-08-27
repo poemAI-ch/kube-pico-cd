@@ -33,13 +33,12 @@ class Listener:
         build_identifier_key = self.settings.build_incremental_identifier
 
         config_map_name = self.settings.config_map_name
-        namespace = self.settings.namespace
         try:
             _logger.info(
                 f"Getting build_incremental_identifier {build_identifier_key} from ConfigMap {config_map_name} in namespace {namespace}"
             )
             config_map = self.get_kube_api().read_namespaced_config_map(
-                config_map_name, self.settings.namespace
+                config_map_name, self.settings.kube_namespace
             )
             return int(config_map.data[build_identifier_key])
         except Exception as e:
@@ -54,7 +53,7 @@ class Listener:
             subprocess.run(["kubectl", "apply", "-f", tmpfile.name])
 
     def start(self):
-        _logger.info(f"Using namespace {self.settings.namespace}")
+        _logger.info(f"Using namespace {self.settings.kube_namespace}")
         build_identifier_key = self.settings.build_incremental_identifier
 
         # Initialize AWS SQS resource
