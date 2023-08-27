@@ -53,6 +53,10 @@ class Listener:
             subprocess.run(["kubectl", "apply", "-f", tmpfile.name])
 
     def start(self):
+        if "kube_namespace" not in self.settings:
+            raise Exception(
+                "kube_namespace is neither given as argument, not set in settings, and cannot be determined from the service account"
+            )
         _logger.info(f"Using namespace {self.settings.kube_namespace}")
         build_identifier_key = self.settings.build_incremental_identifier
 

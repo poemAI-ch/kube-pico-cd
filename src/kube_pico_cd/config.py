@@ -28,7 +28,10 @@ def get_current_namespace():
 
 
 # After you've instantiated your settings object
-if "namespace" not in settings:
-    namespace = get_current_namespace()
-    if namespace:
-        settings.set("namespace", namespace)
+if "kube_namespace" not in settings:
+    kube_namespace = get_current_namespace()
+    if kube_namespace:
+        settings.set("kube_namespace", kube_namespace)
+        _logger.info(
+            f"Using namespace {kube_namespace}, retrieved from service account"
+        )

@@ -14,11 +14,10 @@ _logger = logging.getLogger(__name__)
 
 
 def start_listener(args):
-    _logger.info(f"Start listenere")
+    _logger.info(f"Start listener")
     if hasattr(args, "namespace") and args.namespace is not None:
         settings.kube_namespace = args.namespace
 
-    _logger.info("Start kube-pico-cd")
     listener = Listener(settings)
     listener.start()
 
