@@ -27,6 +27,7 @@ class Listener:
             kube_config.load_incluster_config()
 
         self.kube_api = kube_client.CoreV1Api()
+        return self.kube_api
 
     # Function to get the current build timestamp from the ConfigMap
     def get_current_incremental_identifier(self):
