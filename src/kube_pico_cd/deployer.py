@@ -64,8 +64,8 @@ def push_to_deploy_queue(deploy_queue_name=None, manifests_root=None):
         "buildTimestamp": build_time_stamp,
         "BRANCH_NAME": os.getenv("BRANCH_NAME", "undefined"),
         "COMMIT_HASH": os.getenv("COMMIT_HASH", "undefined"),
-        "TAG_NAME": os.getenv("TAG_NAME", "undefined"),
-        "GITHUB_RUN_NUMBER": os.getenv("GITHUB_RUN_NUMBER", "undefined"),
+        "REF_NAME": os.getenv("REF_NAME", "undefined"),
+        "BUILD_NUMBER": os.getenv("BUILD_NUMBER", "undefined"),
         "CONFIG_MAP_NAME": settings.config_map_name,
     }
 
