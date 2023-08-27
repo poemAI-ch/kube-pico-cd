@@ -17,6 +17,8 @@ if "log_format" in settings:
     log_format = settings.log_format
 logging.basicConfig(level=logging.INFO, format=log_format)
 
+for key in sorted(settings.keys()):
+    _logger.info(f"Setting {key}: {settings[key]}")
 
 def get_current_namespace():
     try:

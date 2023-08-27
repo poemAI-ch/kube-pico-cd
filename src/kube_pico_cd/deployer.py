@@ -50,7 +50,7 @@ def push_to_deploy_queue(deploy_queue_name=None, manifests_root=None):
             deploy_queue_name = settings.deploy_queue_name
             _logger.info(f"Using queue name from settings: {deploy_queue_name}")
 
-    if deploy_queue_name is None:
+    if deploy_queue_name is None or deploy_queue_name == "":
         raise Exception(
             "deploy_queue_name is neither given as argument nor set in settings"
         )
